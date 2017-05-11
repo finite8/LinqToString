@@ -8,61 +8,6 @@ using System.Text;
 
 namespace System.Linq.Dynamic
 {
-    public static class LinqToString
-    {
-        public static string ToDynamicLinqString<T>(Expression<Func<T, bool>> expr)
-        {
-            LinqParser<T> parser = new LinqParser<T>()
-            {
-                origExpr = expr
-            };
-            return parser.ResolveExpression();
-        }
-
-        public static string ToDynamicLinqString(Type type, Expression expr)
-        {
-            var consType = typeof(LinqParser<>).MakeGenericType(new Type[] { type });
-
-            object parser = Activator.CreateInstance(consType);
-            consType.GetRuntimeProperty("origExpr").SetValue(parser, expr, null);
-            var method = consType.GetRuntimeMethod("ResolveExpression", new Type[0]);
-            return (string)method.Invoke(parser, null);
-        }
-
-        public static string GetOperatorForNodeType(ExpressionType type)
-        {
-            switch (type)
-            {
-                case ExpressionType.And:
-                    return "AND";
-                case ExpressionType.AndAlso:
-                    return "AND";
-                case ExpressionType.Or:
-                    return "OR";
-                case ExpressionType.OrElse:
-                    return "OR";
-                case ExpressionType.GreaterThan:
-                    return ">";
-                case ExpressionType.GreaterThanOrEqual:
-                    return ">=";
-                case ExpressionType.LessThan:
-                    return "<";
-                case ExpressionType.LessThanOrEqual:
-                    return "<=";
-                case ExpressionType.NotEqual:
-                    return "!=";
-                case ExpressionType.Equal:
-                    return "=";
-                default:
-                    return null;
-            }
-        }
-
-
-
-
-    }
-
     internal class LinqParser<T>
     {
 
@@ -104,7 +49,7 @@ namespace System.Linq.Dynamic
                 BinaryExpression bExpr = (BinaryExpression)expr;
                 //if (bExpr.Method == null)
                 //{
-                string op = LinqToString.GetOperatorForNodeType(bExpr.NodeType);
+                string op = DynamicLinqParser.GetOperatorForNodeType(bExpr.NodeType);
                 if (op != null)
                 {
                     string formatStr;
@@ -290,7 +235,7 @@ namespace System.Linq.Dynamic
             else if (expr.NodeType == ExpressionType.Lambda)
             {
                 LambdaExpression lExpr = (LambdaExpression)expr;
-                return new ParseResult(lExpr.ReturnType, LinqToString.ToDynamicLinqString(lExpr.Parameters[0].Type, lExpr));
+                return new ParseResult(lExpr.ReturnType, DynamicLinqParser.ParseExpression(lExpr.Parameters[0].Type, lExpr));
             }
             throw new InvalidOperationException();
 

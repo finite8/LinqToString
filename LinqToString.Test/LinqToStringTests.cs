@@ -85,7 +85,7 @@ namespace System.Linq.Dynamic.Test
 
         Expression<Func<T, bool>> Transform<T>(Expression<Func<T, bool>> expr)
         {
-            string exprString = LinqToString.ToDynamicLinqString(expr);
+            string exprString = DynamicLinqParser.ParseExpression(expr);
             return (Expression < Func<T, bool> >) DynamicExpressionParser.ParseLambda(false, typeof(T), typeof(bool), exprString, null);
 
 
